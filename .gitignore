@@ -1,0 +1,43 @@
+# Python #
+##########
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django #
+##########
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+*.sqlite3
+local_settings.py  # If you have a local settings file
+.env  # If you are using environment variables
+
+# Virtual Environment #
+#######################
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs and Editors #
+#####################
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter Notebook #
+####################
+.ipynb_checkpoints/
+
+# Misc #
+#########
+*.DS_Store
+*.egg-info/
+dist/
+build/

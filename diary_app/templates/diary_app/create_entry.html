@@ -1,0 +1,16 @@
+<!-- diary_app/templates/diary_app/create_entry.html -->
+{% extends 'diary_app/base.html' %}
+
+{% block title %}Create Entry{% endblock %}
+
+{% block content %}
+<h2>Create New Diary Entry</h2>
+<form method="POST">
+    {% csrf_token %}
+    <label for="title">Title:</label>
+    <input type="text" name="title" required>
+    <label for="content">Content:</label>
+    <textarea name="content" required></textarea>
+    <button type="submit">Save Entry</button>
+</form>
+{% endblock %}

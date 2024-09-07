@@ -1,0 +1,20 @@
+<!-- diary_app/templates/diary_app/diary_entries.html -->
+{% extends 'diary_app/base.html' %}
+
+{% block title %}Diary Entries{% endblock %}
+
+{% block content %}
+<h2>Your Diary Entries</h2>
+<a href="{% url 'create_entry' %}">Create New Entry</a>
+<ul>
+    {% for entry in entries %}
+        <li>
+            <strong>{{ entry.title }}</strong> - {{ entry.created_at }}
+            <a href="{% url 'edit_entry' entry.id %}">Edit</a>
+            <a href="{% url 'delete_entry' entry.id %}">Delete</a>
+        </li>
+    {% empty %}
+        <li>No entries yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
