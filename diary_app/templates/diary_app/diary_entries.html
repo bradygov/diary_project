@@ -1,20 +1,146 @@
-<!-- diary_app/templates/diary_app/diary_entries.html -->
 {% extends 'diary_app/base.html' %}
 
 {% block title %}Diary Entries{% endblock %}
 
 {% block content %}
-<h2>Your Diary Entries</h2>
-<a href="{% url 'create_entry' %}">Create New Entry</a>
-<ul>
-    {% for entry in entries %}
-        <li>
-            <strong>{{ entry.title }}</strong> - {{ entry.created_at }}
-            <a href="{% url 'edit_entry' entry.id %}">Edit</a>
-            <a href="{% url 'delete_entry' entry.id %}">Delete</a>
-        </li>
-    {% empty %}
-        <li>No entries yet.</li>
-    {% endfor %}
-</ul>
+<div class="diary-container">
+    <div class="entry-list">
+        <h2>Your Diary Entries</h2>
+        <a href="{% url 'create_entry' %}">Create New Entry</a>
+        <ul>
+            {% for entry in entries %}
+                <li>
+                    <a href="#" class="entry-title" data-id="{{ entry.id }}">{{ entry.title }}</a> - {{ entry.created_at }}
+                    <button class="delete-btn" data-id="{{ entry.id }}">Delete</button>
+                    <button class="edit-btn" data-id="{{ entry.id }}">Edit</button>
+
+                    <!-- Display replies -->
+                    <div class="replies">
+                        {% for reply in entry.reply_set.all %}
+                            <div class="reply">
+                                <strong>{{ reply.user.username }}:</strong>
+                                <p>{{ reply.content }}</p>
+                                <small>Posted on {{ reply.created_at }}</small>
+                            </div>
+                        {% empty %}
+                            <p>No replies yet.</p>
+                        {% endfor %}
+                    </div>
+                </li>
+            {% empty %}
+                <li>No entries yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="entry-details">
+        <h2>Entry Details</h2>
+        <div id="entry-content">
+            <p>Select a diary entry to view its content.</p>
+        </div>
+        <div id="reply-form" style="display: none;">
+            <h3>Add a Reply</h3>
+            <form id="replyForm" method="POST" onsubmit="addReply(event)">
+                {% csrf_token %}
+                <textarea name="reply" placeholder="Write your reply here..." required></textarea>
+                <button type="submit">Reply</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    // Function to load entry details when an entry title is clicked
+    document.querySelectorAll('.entry-title').forEach(item => {
+        item.addEventListener('click', event => {
+            event.preventDefault();
+            const entryId = item.getAttribute('data-id');
+            fetch(`/diary/entry/${entryId}/`) // Adjust this URL to your view
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('entry-content').innerHTML = `
+                        <h3>${data.title}</h3>
+                        <p>${data.content}</p>
+                    `;
+                    document.getElementById('reply-form').style.display = 'block';
+                });
+        });
+    });
+
+    // Function to delete an entry
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const entryId = btn.getAttribute('data-id');
+            if (confirm('Are you sure you want to delete this entry?')) {
+                fetch(`/diary/delete/${entryId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken') // Include CSRF token
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Entry deleted successfully.');
+                        location.reload(); // Reload the page to see the changes
+                    } else {
+                        alert('Failed to delete entry.');
+                    }
+                });
+            }
+        });
+    });
+
+    // Function to edit an entry
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const entryId = btn.getAttribute('data-id');
+            // Redirect to the edit entry page
+            window.location.href = `/diary/edit/${entryId}/`; // Adjust this URL to your edit view
+        });
+    });
+
+    // Function to add a reply
+document.getElementById('replyForm').addEventListener('submit', addReply);
+
+function addReply(event) {
+    event.preventDefault();
+    const replyText = event.target.reply.value;
+    const entryId = document.querySelector('.entry-title[data-id]').getAttribute('data-id'); // Get the current entry ID
+
+    fetch(`/diary/reply/${entryId}/`, { // Adjust this URL to your reply view
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'), // Get CSRF token for security
+        },
+        body: JSON.stringify({ reply: replyText }),
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Reply added successfully.');
+            event.target.reset(); // Clear the reply form
+            location.reload(); // Reload the page to see the new reply
+        } else {
+            alert('Failed to add reply.');
+        }
+    });
+}
+
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Check if this cookie string begins with the name we want
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 {% endblock %}

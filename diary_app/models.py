@@ -12,3 +12,12 @@ class DiaryEntry(models.Model):
 
     def __str__(self):
         return self.title
+    
+class Reply(models.Model):
+    entry = models.ForeignKey(DiaryEntry, on_delete=models.CASCADE)
+    content = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Reply by {self.user.username} on {self.entry.title}'
